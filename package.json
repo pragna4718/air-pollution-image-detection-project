@@ -1,0 +1,20 @@
+{
+  "name": "air-pollution-image-detection",
+  "version": "1.0.0",
+  "description": "Air Pollution and Weather Detection Dashboard",
+  "private": true,
+  "scripts": {
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "start-backend": "cd backend && npm start",
+    "start-frontend": "cd frontend && npm start",
+    "dev-backend": "cd backend && npm run dev",
+    "start-all": "concurrently \"npm run start-backend\" \"npm run start-frontend\""
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
+
