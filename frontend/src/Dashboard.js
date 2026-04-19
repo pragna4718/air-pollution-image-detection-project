@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import backgroundImage from './assets/background1.jpeg';
 
@@ -66,8 +67,9 @@ const getRainfallEstimate = (precipitation, humidity, cloudCover = 50) => {
   return { probability: Math.round(probability), intensity, icon, humidity };
 };
 
-const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading, error }) => {
+const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading, error, onShowVisualizations }) => {
   const [showDetails, setShowDetails] = useState(false);
+  const navigate = useNavigate();
 
   const weather = data?.weather?.current;
   const dailyWeather = data?.weather?.daily;
@@ -396,7 +398,7 @@ const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading,
 
       {/* Navigation Arrow to Next Page */}
       <div className="navigation-arrow">
-        <button className="arrow-button" title="Next Page">
+        <button className="arrow-button" title="View Visualizations" onClick={() => navigate('/visualization')}>
           <span>→</span>
         </button>
       </div>

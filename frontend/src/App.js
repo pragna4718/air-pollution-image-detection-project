@@ -2,6 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import Dashboard from './Dashboard';
 
+// 🔥 ADD THIS (for navigation)
+import { useNavigate } from "react-router-dom";
+
 const fallbackCities = ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai'];
 
 function App() {
@@ -11,6 +14,9 @@ function App() {
   const [error, setError] = useState(null);
   const [inputCity, setInputCity] = useState('');
 
+  // 🔥 navigation hook
+  const navigate = useNavigate();
+
   const fetchDashboardData = useCallback(async (cityName, retryIndex = 0) => {
     setLoading(true);
     setError(null);
@@ -18,7 +24,6 @@ function App() {
       const response = await fetch(`http://localhost:3001/api/dashboard?city=${encodeURIComponent(cityName)}`);
       
       if (!response.ok) {
-        // Try fallback cities
         if (retryIndex < fallbackCities.length) {
           const nextCity = fallbackCities[retryIndex];
           console.log(`Trying fallback city: ${nextCity}`);
@@ -53,15 +58,36 @@ function App() {
   return (
     <div className="app">
       {data ? (
-        <Dashboard 
-          data={data} 
-          city={city}
-          onCityChange={handleCityChange}
-          inputCity={inputCity}
-          setInputCity={setInputCity}
-          loading={loading}
-          error={error}
-        />
+        <>
+          {/* 🔥 ORIGINAL UI (UNCHANGED) */}
+          <Dashboard 
+            data={data} 
+            city={city}
+            onCityChange={handleCityChange}
+            inputCity={inputCity}
+            setInputCity={setInputCity}
+            loading={loading}
+            error={error}
+          />
+
+          {/* 🔥 YOUR ADDITION (button only) */}
+          <div style={{ textAlign: "center", marginTop: "20px" }}>
+            <button 
+              onClick={() => navigate('/visualization')}
+              style={{
+                padding: "12px 20px",
+                background: "#2ecc71",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+                fontSize: "16px"
+              }}
+            >
+              View Air Quality Visualization 📊
+            </button>
+          </div>
+        </>
       ) : loading ? (
         <div className="loading">
           <div className="spinner"></div>
@@ -71,7 +97,9 @@ function App() {
         <div className="error">
           <div className="error-icon">⚠️</div>
           <p>Error: {error}</p>
-          <button onClick={() => fetchDashboardData('Mumbai')}>Retry with Default City</button>
+          <button onClick={() => fetchDashboardData('Mumbai')}>
+            Retry with Default City
+          </button>
         </div>
       ) : null}
     </div>

@@ -229,7 +229,64 @@ PORT=3001
 
 Note: The current implementation uses free APIs that don't require API keys from the `.env` file, but it's prepared for future integration.
 
-## 🔮 Future Enhancements
+## � Air Quality Visualization and Image Detection
+
+### Visualization
+1. Place a dataset at `ml_api/data/air_quality.csv` with a `Date` column and either `AQI` or `PM2.5`.
+2. Run:
+
+```bash
+python ml_api/air_quality_visualization.py
+```
+
+3. Generated charts will be saved to `ml_api/plots/`:
+   - `aqi_over_time.png`
+   - `monthly_average_aqi.png`
+   - `hourly_aqi_pattern.png`
+   - `correlation_heatmap.png`
+
+### Image-based CNN Pollution Detection
+1. Place training images under:
+   - `ml_api/data/images/train/Clean`
+   - `ml_api/data/images/train/Polluted`
+2. Place validation images under:
+   - `ml_api/data/images/validation/Clean`
+   - `ml_api/data/images/validation/Polluted`
+3. Run:
+
+```bash
+python ml_api/cnn_image_detection.py
+```
+
+4. The trained model will be saved to `model/model.h5` and training plots will be saved in `ml_api/`.
+
+### Flask API Integration
+- Load visualization data from: `http://localhost:5000/visualization-data`
+- Predict image pollution from: `http://localhost:5000/predict-image`
+
+Example frontend fetch for visualization JSON:
+
+```js
+fetch('http://localhost:5000/visualization-data')
+  .then((res) => res.json())
+  .then((data) => console.log(data));
+```
+
+Example frontend upload for image prediction:
+
+```js
+const formData = new FormData();
+formData.append('image', file);
+
+fetch('http://localhost:5000/predict-image', {
+  method: 'POST',
+  body: formData,
+})
+  .then((res) => res.json())
+  .then((result) => console.log(result));
+```
+
+## �🔮 Future Enhancements
 
 1. **Image Detection Integration**: Connect the ML model for pollution source detection
 2. **Historical Data**: Display pollution trends over time
