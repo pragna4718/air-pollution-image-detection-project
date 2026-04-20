@@ -69,6 +69,7 @@ const getRainfallEstimate = (precipitation, humidity, cloudCover = 50) => {
 
 const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading, error, onShowVisualizations }) => {
   const [showDetails, setShowDetails] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const navigate = useNavigate();
 
   const weather = data?.weather?.current;
@@ -120,6 +121,59 @@ const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading,
           <p className="location-name">
             📍 {cityData?.name}, {cityData?.country}
           </p>
+        </div>
+
+        {/* Hamburger Menu Button */}
+        <button 
+          className="hamburger-menu" 
+          onClick={() => setShowMenu(!showMenu)}
+          title="Menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+
+      {/* Right Sidebar Menu */}
+      <div className={`right-menu ${showMenu ? 'open' : ''}`}>
+        <div className="menu-content">
+          <button 
+            className="menu-close" 
+            onClick={() => setShowMenu(false)}
+          >
+            ✕
+          </button>
+          <h2 className="menu-title">Menu</h2>
+          <div className="menu-items">
+            <button 
+              className="menu-item"
+              onClick={() => {
+                navigate('/image-detection');
+                setShowMenu(false);
+              }}
+            >
+              📷 Image Based Detection
+            </button>
+            <button 
+              className="menu-item"
+              onClick={() => {
+                navigate('/data-analysis');
+                setShowMenu(false);
+              }}
+            >
+              📊 Various Data Analysis
+            </button>
+            <button 
+              className="menu-item"
+              onClick={() => {
+                navigate('/recommendations');
+                setShowMenu(false);
+              }}
+            >
+              💡 Recommendations
+            </button>
+          </div>
         </div>
       </div>
 
