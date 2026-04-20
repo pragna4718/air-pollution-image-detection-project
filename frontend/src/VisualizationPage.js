@@ -37,7 +37,7 @@ function VisualizationPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://localhost:5000/visualization-data")
+    fetch("http://localhost:3001/api/visualization-data")
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch data");
         return res.json();
@@ -253,9 +253,8 @@ function VisualizationPage() {
     border: "1px solid rgba(255,255,255,0.08)",
     padding: "24px",
     minHeight: "520px",
-    maxHeight: "640px",
     width: "100%",
-    overflow: "hidden",
+    overflow: "auto",
     boxSizing: "border-box",
     display: "flex",
     flexDirection: "column",
@@ -273,7 +272,7 @@ function VisualizationPage() {
     const chartContainer = (title, chart) => (
       <>
         <h2 style={{ marginBottom: "18px", textAlign: "center", flexShrink: 0 }}>{title}</h2>
-        <div style={{ flex: 1, width: "100%", minHeight: 0, overflow: "hidden" }}>
+        <div style={{ flex: 1, width: "100%", minHeight: "400px", overflow: "auto" }}>
           {chart}
         </div>
       </>
@@ -435,8 +434,8 @@ function VisualizationPage() {
         return (
           <>
             <h2 style={{ marginBottom: "18px", textAlign: "center" }}>Correlation Heatmap</h2>
-            <div style={{ overflowX: "auto", height: "460px" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", color: "#fff" }}>
+            <div style={{ overflow: "auto", height: "460px" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", color: "#fff", minWidth: "600px" }}>
                 <thead>
                   <tr>
                     <th style={{ borderBottom: "1px solid rgba(255,255,255,0.2)", padding: "12px" }}></th>
@@ -509,7 +508,7 @@ function VisualizationPage() {
   };
 
   return (
-    <div style={{ backgroundColor: "#000", color: "#fff", minHeight: "100vh", padding: "20px" }}>
+    <div style={{ backgroundColor: "#000", color: "#fff", height: "100vh", padding: "20px", overflowY: "auto" }}>
       <div style={{ maxWidth: "1300px", margin: "0 auto" }}>
         <h1 style={{ textAlign: "center", marginBottom: "14px" }}>Air Quality Visualizations</h1>
         <div style={{ textAlign: "center", marginBottom: "28px" }}>
