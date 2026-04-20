@@ -67,7 +67,7 @@ const getRainfallEstimate = (precipitation, humidity, cloudCover = 50) => {
   return { probability: Math.round(probability), intensity, icon, humidity };
 };
 
-const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading, error, onShowVisualizations }) => {
+const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading, error }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const navigate = useNavigate();
@@ -149,29 +149,12 @@ const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading,
             <button 
               className="menu-item"
               onClick={() => {
-                navigate('/image-detection');
-                setShowMenu(false);
-              }}
-            >
-              📷 Image Based Detection
-            </button>
-            <button 
-              className="menu-item"
-              onClick={() => {
-                navigate('/data-analysis');
-                setShowMenu(false);
-              }}
-            >
-              📊 Various Data Analysis
-            </button>
-            <button 
-              className="menu-item"
-              onClick={() => {
                 navigate('/recommendations');
                 setShowMenu(false);
               }}
             >
               💡 Recommendations
+              
             </button>
           </div>
         </div>
@@ -490,6 +473,7 @@ const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading,
           </div>
         </div>
       )}
+
     </div>
   );
 };
