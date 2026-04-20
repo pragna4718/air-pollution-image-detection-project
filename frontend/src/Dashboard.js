@@ -149,12 +149,29 @@ const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading,
             <button 
               className="menu-item"
               onClick={() => {
+                navigate('/image-detection');
+                setShowMenu(false);
+              }}
+            >
+              🖼️ Image Detection
+            </button>
+            <button 
+              className="menu-item"
+              onClick={() => {
+                navigate('/data-analysis');
+                setShowMenu(false);
+              }}
+            >
+              📈 Data Analysis
+            </button>
+            <button 
+              className="menu-item"
+              onClick={() => {
                 navigate('/recommendations');
                 setShowMenu(false);
               }}
             >
               💡 Recommendations
-              
             </button>
           </div>
         </div>
@@ -431,6 +448,26 @@ const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading,
             </ul>
           </div>
         </div>
+      </div>
+
+      {/* Visualization call-to-action */}
+      <div className="visualization-action" style={{ display: 'flex', justifyContent: 'center', margin: '24px 0' }}>
+        <button
+          className="visualization-button"
+          style={{
+            padding: '14px 24px',
+            borderRadius: '10px',
+            background: '#2ecc71',
+            color: '#000',
+            border: 'none',
+            fontSize: '16px',
+            cursor: 'pointer',
+            fontWeight: '700'
+          }}
+          onClick={() => navigate('/visualization')}
+        >
+          📊 Go to Visualization
+        </button>
       </div>
 
       {/* Navigation Arrow to Next Page */}

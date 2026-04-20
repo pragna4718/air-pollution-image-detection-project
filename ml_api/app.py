@@ -24,7 +24,9 @@ def home():
 # -------------------------------
 @app.route('/visualization-data', methods=['GET'])
 def visualization_data():
-    df = pd.read_csv("data/air_quality.csv")
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    csv_path = os.path.join(base_dir, 'data', 'air_quality.csv')
+    df = pd.read_csv(csv_path)
 
     df['Date'] = pd.to_datetime(df['Date'])
     df['month'] = df['Date'].dt.month

@@ -2,6 +2,8 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
+const fs = require("fs");
+const path = require("path");
 
 const app = express();
 const API_KEY = process.env.API_KEY;
@@ -99,6 +101,47 @@ app.get("/api/dashboard", async (req, res) => {
   } catch (error) {
     console.error("Dashboard error:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Visualization data endpoint
+app.get("/api/visualization-data", (req, res) => {
+  try {
+    const csvPath = path.resolve(__dirname, "../ml_api/data/air_quality.csv");
+    const csvText = fs.readFileSync(csvPath, "utf8");
+    const rows = csvText.trim().split(/\r?\n/);
+    const headers = rows[0].split(",").map((h) => h.trim());
+    const dataRows = rows.slice(1).map((row) => row.split(",").map((cell) => cell.trim()));
+
+    const payload = {};
+    const addColumn = (columnName, key) => {
+      const index = headers.indexOf(columnName);
+      if (index !== -1) {
+        payload[key] = dataRows.map((row) => row[index]);
+      }
+    };
+
+    addColumn("AQI", "aqi");
+    addColumn("Temperature", "temperature");
+    addColumn("Humidity", "humidity");
+    addColumn("Wind Speed", "wind_speed");
+    addColumn("Date", "dates");
+
+    if (payload.dates) {
+      payload.months = payload.dates.map((dateValue) => {
+        const date = new Date(dateValue);
+        return Number.isFinite(date.getMonth()) ? date.getMonth() + 1 : null;
+      });
+      payload.hours = payload.dates.map((dateValue) => {
+        const date = new Date(dateValue);
+        return Number.isFinite(date.getHours()) ? date.getHours() : null;
+      });
+    }
+
+    return res.json(payload);
+  } catch (error) {
+    console.error("Visualization data error:", error);
+    return res.status(500).json({ error: "Unable to load visualization data" });
   }
 });
 

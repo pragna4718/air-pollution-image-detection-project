@@ -37,19 +37,28 @@ function VisualizationPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/visualization-data")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch data");
-        return res.json();
-      })
-      .then((result) => {
-        setData(result);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
+    const fetchData = async () => {
+      const endpoints = ['/api/visualization-data', 'http://localhost:3001/api/visualization-data', 'http://localhost:5000/visualization-data'];
+      let lastError = null;
+
+      for (const url of endpoints) {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`Failed to fetch visualization data from ${url}`);
+          const result = await res.json();
+          setData(result);
+          setLoading(false);
+          return;
+        } catch (err) {
+          lastError = err;
+        }
+      }
+
+      setError(lastError?.message || 'Failed to fetch visualization data');
+      setLoading(false);
+    };
+
+    fetchData();
   }, []);
 
   if (loading) {

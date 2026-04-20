@@ -69,24 +69,6 @@ function App() {
             loading={loading}
             error={error}
           />
-
-          {/* 🔥 YOUR ADDITION (button only) */}
-          <div style={{ textAlign: "center", marginTop: "20px" }}>
-            <button 
-              onClick={() => navigate('/visualization')}
-              style={{
-                padding: "12px 20px",
-                background: "#2ecc71",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-                fontSize: "16px"
-              }}
-            >
-              View Air Quality Visualization 📊
-            </button>
-          </div>
         </>
       ) : loading ? (
         <div className="loading">
