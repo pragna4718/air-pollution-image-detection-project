@@ -2,9 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import Dashboard from './Dashboard';
 
-// 🔥 ADD THIS (for navigation)
-import { useNavigate } from "react-router-dom";
-
 const fallbackCities = ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai'];
 
 function App() {
@@ -13,9 +10,6 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [inputCity, setInputCity] = useState('');
-
-  // 🔥 navigation hook
-  const navigate = useNavigate();
 
   const fetchDashboardData = useCallback(async (cityName, retryIndex = 0) => {
     setLoading(true);
@@ -56,35 +50,30 @@ function App() {
   };
 
   return (
-    <div className="App">
-      {data ? (
-        <>
-          {/* 🔥 ORIGINAL UI (UNCHANGED) */}
-          <Dashboard 
-            data={data} 
-            city={city}
-            onCityChange={handleCityChange}
-            inputCity={inputCity}
-            setInputCity={setInputCity}
-            loading={loading}
-            error={error}
-          />
-        </>
-      ) : loading ? (
-        <div className="loading">
-          <div className="spinner"></div>
-          <p>Loading dashboard...</p>
-        </div>
-      ) : error ? (
-        <div className="error">
-          <div className="error-icon">⚠️</div>
-          <p>Error: {error}</p>
-          <button onClick={() => fetchDashboardData('Mumbai')}>
-            Retry with Default City
-          </button>
-        </div>
-      ) : null}
-    </div>
+    data ? (
+      <Dashboard 
+        data={data} 
+        city={city}
+        onCityChange={handleCityChange}
+        inputCity={inputCity}
+        setInputCity={setInputCity}
+        loading={loading}
+        error={error}
+      />
+    ) : loading ? (
+      <div className="loading">
+        <div className="spinner"></div>
+        <p>Loading dashboard...</p>
+      </div>
+    ) : error ? (
+      <div className="error">
+        <div className="error-icon">⚠️</div>
+        <p>Error: {error}</p>
+        <button onClick={() => fetchDashboardData('Mumbai')}>
+          Retry with Default City
+        </button>
+      </div>
+    ) : null
   );
 }
 
