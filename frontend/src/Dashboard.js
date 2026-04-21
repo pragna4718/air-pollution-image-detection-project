@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from './AuthContext';
 import './Dashboard.css';
 import backgroundImage from './assets/background1.jpeg';
 
@@ -70,7 +71,13 @@ const getRainfallEstimate = (precipitation, humidity, cloudCover = 50) => {
 const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading, error }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const { logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const weather = data?.weather?.current;
   const dailyWeather = data?.weather?.daily;
@@ -172,6 +179,13 @@ const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading,
               }}
             >
               💡 Recommendations
+            </button>
+            <button 
+              className="menu-item"
+              style={{ marginTop: 'auto', borderTop: '1px solid rgba(255,255,255,0.1)', color: '#FF6B6B' }}
+              onClick={handleLogout}
+            >
+              🚪 Logout
             </button>
           </div>
         </div>
@@ -470,12 +484,6 @@ const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading,
         </button>
       </div>
 
-      {/* Navigation Arrow to Next Page */}
-      <div className="navigation-arrow">
-        <button className="arrow-button" title="View Visualizations" onClick={() => navigate('/visualization')}>
-          <span>→</span>
-        </button>
-      </div>
 
       {/* Details Toggle Button */}
       <div className="details-toggle">

@@ -1,4 +1,4 @@
-﻿from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pandas as pd
 import numpy as np
@@ -6,6 +6,15 @@ import pickle
 from PIL import Image
 import io
 import os
+from g4f.client import Client
+
+# Initialize G4F client
+try:
+    g4f_client = Client()
+    G4F_AVAILABLE = True
+except Exception:
+    G4F_AVAILABLE = False
+
 
 # Try to import TensorFlow, but make it optional
 try:
@@ -13,7 +22,7 @@ try:
     TF_AVAILABLE = True
 except ImportError:
     TF_AVAILABLE = False
-    print("⚠️  TensorFlow not installed. Using fallback image detection.")
+    print("WARNING: TensorFlow not installed. Using fallback image detection.")
 
 app = Flask(__name__)
 CORS(app)
@@ -23,7 +32,7 @@ CORS(app)
 # =========================
 try:
     model = pickle.load(open("model.pkl", "rb"))
-    print("AQI Model Loaded ✅")
+    print("AQI Model Loaded Successfully")
 except Exception as e:
     print("Error loading AQI model:", e)
 
@@ -37,7 +46,7 @@ if TF_AVAILABLE:
         model_path = os.path.join(os.path.dirname(__file__), '..', 'model', 'model.h5')
         if os.path.exists(model_path):
             image_model = tf.keras.models.load_model(model_path)
-            print("Image Detection Model (CNN) Loaded ✅")
+            print("Image Detection Model (CNN) Loaded Successfully")
         else:
             print(f"Model file not found at {model_path}. Using fallback detection.")
     except Exception as e:
@@ -259,6 +268,40 @@ def predict_image():
     
     
 
+
+# =========================
+# CHATBOT ROUTE
+# =========================
+@app.route('/chat', methods=['POST'])
+def chat():
+    try:
+        data = request.json
+        user_message = data.get('message', '')
+        
+        # We use a free LLM proxy (pollinations.ai) to avoid requiring API keys for users.
+        import requests
+        import urllib.parse
+        
+        # Encode the prompt and append instructions to act as an AQI assistant
+        system_prompt = "You are an intelligent AI assistant embedded in a Weather & Air Pollution Dashboard app. Your goal is to answer the user's questions seamlessly and helpfully."
+        combined_prompt = f"{system_prompt}\n\nUser: {user_message}"
+        encoded_prompt = urllib.parse.quote(combined_prompt)
+        
+        url = f"https://text.pollinations.ai/{encoded_prompt}"
+        response = requests.get(url, timeout=15)
+        
+        if response.status_code == 200:
+            reply = response.text
+        else:
+            reply = "I'm sorry, I'm having trouble connecting to the AI models right now."
+            
+        return jsonify({"reply": reply})
+        
+    except Exception as e:
+        print(f"Chatbot Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
 # =========================
 # RUN SERVER
