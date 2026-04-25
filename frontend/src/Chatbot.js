@@ -30,23 +30,41 @@ const Chatbot = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: userMessage }),
-      });
+      const endpoints = ['http://localhost:5000/chat', '/api/chat'];
+      let response = null;
+      let data = null;
 
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+      for (const url of endpoints) {
+        try {
+          response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message: userMessage }),
+          });
+
+          if (!response.ok) {
+            continue;
+          }
+
+          data = await response.json();
+          if (data?.reply) {
+            break;
+          }
+        } catch (endpointError) {
+          console.warn(`Chat endpoint failed: ${url}`, endpointError);
+        }
       }
 
-      const data = await response.json();
-      setMessages(prev => [...prev, { sender: 'bot', text: data.reply || "I couldn't understand that." }]);
+      if (!data?.reply) {
+        throw new Error('All chat endpoints failed');
+      }
+
+      setMessages(prev => [...prev, { sender: 'bot', text: data.reply }]);
     } catch (error) {
       console.error('Error sending message:', error);
-      setMessages(prev => [...prev, { sender: 'bot', text: 'Sorry, I am having trouble connecting to the server. Please check if the ML API is running on port 5000.' }]);
+      setMessages(prev => [...prev, { sender: 'bot', text: 'Sorry, I am having trouble connecting to the server. Please make sure the backend or ML API is running.' }]);
     } finally {
       setIsLoading(false);
     }

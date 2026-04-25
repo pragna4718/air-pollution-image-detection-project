@@ -15,7 +15,7 @@ function App() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`http://localhost:3001/api/dashboard?city=${encodeURIComponent(cityName)}`);
+      const response = await fetch(`/api/dashboard?city=${encodeURIComponent(cityName)}`);
       
       if (!response.ok) {
         if (retryIndex < fallbackCities.length) {

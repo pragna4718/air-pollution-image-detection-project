@@ -150,54 +150,27 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-// Visualization data endpoint
-app.get("/api/visualization-data", async (req, res) => {
-  try {
-    // Generate mock historical data for visualization
-    const hours = [];
-    const months = [];
-    const aqi = [];
-    const temperature = [];
-    const humidity = [];
-    const wind_speed = [];
-
-    // Generate hourly data for the last 24 hours
-    const now = new Date();
-    for (let i = 23; i >= 0; i--) {
-      const hour = new Date(now.getTime() - i * 60 * 60 * 1000);
-      hours.push(hour.getHours() + ':00');
-      
-      // Generate realistic AQI values (0-200 range)
-      aqi.push(Math.floor(Math.random() * 150) + 20);
-      
-      // Generate temperature data (20-35°C range)
-      temperature.push(Math.floor(Math.random() * 15) + 20);
-      
-      // Generate humidity data (40-90% range)
-      humidity.push(Math.floor(Math.random() * 50) + 40);
-      
-      // Generate wind speed data (5-25 km/h range)
-      wind_speed.push(Math.floor(Math.random() * 20) + 5);
-    }
-
-    // Generate monthly data for the last 12 months
-    for (let i = 11; i >= 0; i--) {
-      const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      months.push(month.toLocaleString('default', { month: 'short' }));
-    }
-
-    res.json({
-      aqi,
-      hours,
-      months,
-      temperature,
-      humidity,
-      wind_speed
-    });
-  } catch (error) {
-    console.error("Visualization data error:", error);
-    res.status(500).json({ error: "Internal server error" });
+// Chat fallback endpoint for frontend chat when the ML API is unavailable
+app.post("/api/chat", (req, res) => {
+  const message = String(req.body?.message || '').trim();
+  if (!message) {
+    return res.status(400).json({ reply: 'Please send a question about air quality, weather, or image pollution detection.' });
   }
+
+  const lowerMessage = message.toLowerCase();
+  let reply = '';
+
+  if (lowerMessage.includes('aqi') || lowerMessage.includes('air quality')) {
+    reply = 'AQI stands for Air Quality Index. Lower values mean cleaner air; higher values mean more pollution. Use the dashboard for the latest weather and air pollution data.';
+  } else if (lowerMessage.includes('image') || lowerMessage.includes('pollution') || lowerMessage.includes('detect')) {
+    reply = 'Use the Image Detection page to upload a photo and I will analyze whether the scene appears clean or polluted.';
+  } else if (lowerMessage.includes('weather') || lowerMessage.includes('temperature') || lowerMessage.includes('humidity')) {
+    reply = 'The dashboard shows current temperature, humidity, wind speed, precipitation, and air quality metrics for the selected city.';
+  } else {
+    reply = 'I am your Air Quality Assistant. Ask me about AQI, pollution levels, weather conditions, or image-based pollution detection.';
+  }
+
+  res.json({ reply });
 });
 
 const PORT = process.env.PORT || 3001;

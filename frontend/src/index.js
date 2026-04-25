@@ -9,6 +9,7 @@ import VisualizationPage from './VisualizationPage';
 import RecommendationsPage from './RecommendationsPage';
 import ImageDetection from './ImageDetection';
 import DataAnalysis from './DataAnalysis';
+import Settings from './Settings';
 import Login from './Login';
 import Signup from './Signup';
 import Chatbot from './Chatbot';
@@ -43,6 +44,7 @@ root.render(
           <Route path="/image-detection" element={<ProtectedRoute><ImageDetection /></ProtectedRoute>} />
           <Route path="/data-analysis" element={<ProtectedRoute><DataAnalysis /></ProtectedRoute>} />
           <Route path="/recommendations" element={<ProtectedRoute><RecommendationsPage /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

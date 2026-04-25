@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import backgroundImage from './assets/backgroung2.jpg';
 import {
   FaRunning,
   FaBicycle,
@@ -96,9 +97,26 @@ const RecommendationsPage = () => {
   };
 
   return (
-    <div className="recommendations-page">
+    <div className="recommendations-page" style={{
+      backgroundImage: `url(${backgroundImage})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed',
+      backgroundColor: 'rgba(0, 0, 0, 0.85)'
+    }}>
+      {/* Semi-transparent overlay */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        zIndex: 1
+      }}></div>
+
       {/* Animated Background */}
-      <div className="animated-bg">
+      <div className="animated-bg" style={{ zIndex: 2 }}>
         <div className="bg-shape shape-1"></div>
         <div className="bg-shape shape-2"></div>
         <div className="bg-shape shape-3"></div>

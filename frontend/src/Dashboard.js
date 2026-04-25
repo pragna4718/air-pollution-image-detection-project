@@ -182,6 +182,15 @@ const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading,
             </button>
             <button 
               className="menu-item"
+              onClick={() => {
+                navigate('/settings');
+                setShowMenu(false);
+              }}
+            >
+              ⚙️ Settings
+            </button>
+            <button 
+              className="menu-item"
               style={{ marginTop: 'auto', borderTop: '1px solid rgba(255,255,255,0.1)', color: '#FF6B6B' }}
               onClick={handleLogout}
             >

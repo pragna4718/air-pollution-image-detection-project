@@ -30,6 +30,7 @@ CORS(app)
 # =========================
 # LOAD AQI MODEL
 # =========================
+model = None
 try:
     model = pickle.load(open("model.pkl", "rb"))
     print("AQI Model Loaded Successfully")
@@ -71,6 +72,9 @@ def predict():
     try:
         data = request.json
 
+        if model is None:
+            return jsonify({"error": "AQI model is unavailable. Please ensure model.pkl is present."}), 500
+
         pm25 = float(data['pm25'])
         pm10 = float(data['pm10'])
         no2 = float(data['no2'])
@@ -83,6 +87,52 @@ def predict():
 
     except Exception as e:
         return jsonify({"error": str(e)})
+
+
+# =========================
+# CHAT ROUTE
+# =========================
+@app.route('/chat', methods=['POST'])
+def chat():
+    try:
+        data = request.get_json(force=True) or {}
+        message = str(data.get('message', '')).strip()
+
+        if not message:
+            return jsonify({"reply": "Please send a question about air quality, weather, image pollution detection, or safety guidance."}), 400
+
+        if G4F_AVAILABLE:
+            try:
+                # Use a lightweight fallback chat model if available
+                reply = g4f_client.ask(message)
+                if reply:
+                    return jsonify({"reply": reply})
+            except Exception as chat_error:
+                print("G4F chat error:", chat_error)
+
+        lower_message = message.lower()
+        if "aqi" in lower_message or "air quality" in lower_message:
+            reply = (
+                "AQI is the Air Quality Index. Lower values mean cleaner air; higher values mean worse pollution. "
+                "You can check current weather and air pollution levels on the dashboard."
+            )
+        elif "image" in lower_message or "pollution" in lower_message or "detect" in lower_message:
+            reply = (
+                "Use the Image Detection page to upload a photo. I will analyze whether the scene looks clean or polluted. "
+                "If you want to predict AQI from sensor data, use the AQI prediction form."
+            )
+        elif "weather" in lower_message or "temperature" in lower_message or "humidity" in lower_message:
+            reply = ("The dashboard shows current temperature, humidity, wind speed, precipitation, and air quality metrics for the selected city.")
+        else:
+            reply = (
+                "I am your Air Quality Assistant. Ask me about AQI, pollution levels, weather conditions, or image-based pollution detection. "
+                "I can also help explain the dashboard cards and recommend safety tips."
+            )
+
+        return jsonify({"reply": reply})
+    except Exception as e:
+        print("Chat error:", e)
+        return jsonify({"reply": "Sorry, I could not process your message right now."}), 500
 
 
 # =========================

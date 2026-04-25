@@ -13,6 +13,7 @@ import {
 } from "chart.js";
 import { Line, Bar, Pie, Scatter } from "react-chartjs-2";
 import { useNavigate } from "react-router-dom";
+import backgroundImage from './assets/backgroung2.jpg';
 
 const pixelRatio = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
 ChartJS.defaults.devicePixelRatio = pixelRatio;
@@ -517,9 +518,25 @@ function VisualizationPage() {
   };
 
   return (
-    <div style={{ backgroundColor: "#000", color: "#fff", height: "100vh", padding: "20px", overflowY: "auto" }}>
-      <div style={{ maxWidth: "1300px", margin: "0 auto" }}>
-        <h1 style={{ textAlign: "center", marginBottom: "14px" }}>Air Quality Visualizations</h1>
+    <div style={{
+      backgroundImage: `url(${backgroundImage})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed',
+      color: "#fff",
+      height: "100vh",
+      padding: "20px",
+      overflowY: "auto"
+    }}>
+      <div style={{
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+        backdropFilter: 'blur(5px)',
+        borderRadius: '12px',
+        padding: '20px',
+        maxWidth: "1300px",
+        margin: "0 auto"
+      }}>
+        <h1 style={{ textAlign: "center", marginBottom: "14px", color: '#fff' }}>Air Quality Visualizations</h1>
         <div style={{ textAlign: "center", marginBottom: "28px" }}>
           <button onClick={() => navigate("/")} style={{ padding: "12px 20px", backgroundColor: "#fff", color: "#000", border: "none", borderRadius: "8px", cursor: "pointer" }}>
             Back to Dashboard

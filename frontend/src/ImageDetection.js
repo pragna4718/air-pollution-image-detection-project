@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import backgroundImage from './assets/backgroung2.jpg';
 
 function ImageDetection() {
   const [file, setFile] = useState(null);
@@ -59,25 +60,37 @@ function ImageDetection() {
   };
 
   const cardStyle = {
-    backgroundColor: "#ffffff",
+    backgroundColor: "#f5f5f5",
     borderRadius: "12px",
     padding: "24px",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
     marginBottom: "20px",
   };
 
-  const containerStyle = {
-    maxWidth: "600px",
-    margin: "40px auto",
-    padding: "20px",
+  const containerWrapperStyle = {
     minHeight: "100vh",
+    backgroundImage: `url(${backgroundImage})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundAttachment: 'fixed',
+    paddingTop: '40px',
+    paddingBottom: '40px',
+  };
+
+  const contentWrapperStyle = {
+    maxWidth: "600px",
+    margin: "0 auto",
+    padding: "20px",
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backdropFilter: 'blur(5px)',
+    borderRadius: '12px',
   };
 
   const titleStyle = {
     fontSize: "28px",
     fontWeight: "bold",
     marginBottom: "24px",
-    color: "#2c3e50",
+    color: "#fff",
   };
 
   const inputContainerStyle = {
@@ -172,30 +185,31 @@ function ImageDetection() {
   };
 
   return (
-    <div style={containerStyle}>
-      <style>
-        {`
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-        `}
-      </style>
+    <div style={containerWrapperStyle}>
+      <div style={contentWrapperStyle}>
+        <style>
+          {`
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+          `}
+        </style>
 
-      <div style={cardStyle}>
-        <h1 style={titleStyle}>🖼️ Image Detection</h1>
+        <div style={cardStyle}>
+          <h1 style={titleStyle}>🖼️ Image Detection</h1>
 
-        <div style={inputContainerStyle}>
-          <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", color: "#2c3e50" }}>
-            Select an image to detect air pollution:
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            style={fileInputStyle}
-            disabled={loading}
-          />
-        </div>
+          <div style={inputContainerStyle}>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", color: "#2c3e50" }}>
+              Select an image to detect air pollution:
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              style={fileInputStyle}
+              disabled={loading}
+            />
+          </div>
 
         {preview && (
           <div style={{ textAlign: "center" }}>
@@ -291,6 +305,7 @@ function ImageDetection() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
