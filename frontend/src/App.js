@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import './App.css';
 import Dashboard from './Dashboard';
+import { AuthContext } from './AuthContext';
 
 const fallbackCities = ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai'];
 
@@ -38,9 +39,21 @@ function App() {
     }
   }, []);
 
+  const { preferences } = useContext(AuthContext);
+
   useEffect(() => {
     fetchDashboardData('Mumbai');
   }, [fetchDashboardData]);
+
+  useEffect(() => {
+    if (!preferences?.autoRefresh) return;
+
+    const interval = setInterval(() => {
+      fetchDashboardData(city || 'Mumbai');
+    }, 180000);
+
+    return () => clearInterval(interval);
+  }, [preferences?.autoRefresh, city, fetchDashboardData]);
 
   const handleCityChange = (e) => {
     e.preventDefault();

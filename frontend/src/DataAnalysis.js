@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Line, Bar, Pie, Scatter } from 'react-chartjs-2';
 import {
@@ -14,6 +14,7 @@ import {
   Legend
 } from 'chart.js';
 import backgroundImage from './assets/backgroung2.jpg';
+import { AuthContext } from './AuthContext';
 import './DataAnalysis.css';
 
 ChartJS.register(LineElement, BarElement, ArcElement, CategoryScale, LinearScale, PointElement, Title, Tooltip, Legend);
@@ -23,6 +24,8 @@ const DataAnalysis = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedMetric, setSelectedMetric] = useState('aqi');
+  const { theme } = useContext(AuthContext);
+  const isDark = theme !== 'light';
 
   useEffect(() => {
     fetchAnalysisData();
@@ -143,14 +146,18 @@ const DataAnalysis = () => {
     return counts;
   }, {});
 
-  // Chart configurations
+  const textColor = isDark ? '#fff' : '#111';
+  const subTextColor = isDark ? '#ccc' : '#4b5563';
+  const panelBackground = isDark ? 'rgba(0, 0, 0, 0.65)' : 'rgba(255, 255, 255, 0.92)';
+  const cardBackground = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.05)';
+
   const aqiTrendChart = {
     labels: data.hours,
     datasets: [{
       label: 'AQI Trend',
       data: aqiList,
       borderColor: '#e74c3c',
-      backgroundColor: 'rgba(231, 76, 60, 0.1)',
+      backgroundColor: 'rgba(231, 76, 60, 0.15)',
       fill: true,
       tension: 0.3,
       pointRadius: 4,
@@ -187,8 +194,125 @@ const DataAnalysis = () => {
     datasets: [{
       data: Object.values(categoryCounts),
       backgroundColor: ['#00b894', '#ffeaa7', '#fdcb6e', '#e17055', '#d63031', '#6c5ce7'],
-      borderColor: 'rgba(255, 255, 255, 0.1)',
+      borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(31, 41, 55, 0.1)',
     }]
+  };
+
+  const movingAverage = aqiList.map((_, index, arr) => {
+    const window = arr.slice(Math.max(0, index - 2), index + 1);
+    return +(window.reduce((sum, value) => sum + value, 0) / window.length).toFixed(1);
+  });
+
+  const monthlyBuckets = (data.months || []).reduce((acc, month, index) => {
+    const key = month || `Month ${index + 1}`;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(aqiList[index] || 0);
+    return acc;
+  }, {});
+
+  const monthlyLabels = Object.keys(monthlyBuckets);
+  const monthlyAverageData = monthlyLabels.map((month) => {
+    const values = monthlyBuckets[month] || [];
+    return values.length ? +(values.reduce((total, value) => total + value, 0) / values.length).toFixed(1) : 0;
+  });
+
+  const hourLabels = Array.from(new Set(data.hours || [])).slice(0, 24);
+  const hourlyBuckets = (data.hours || []).reduce((acc, hour, index) => {
+    const key = hour || `${index}:00`;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(aqiList[index] || 0);
+    return acc;
+  }, {});
+
+  const hourlyAverageData = hourLabels.map((hour) => {
+    const bucket = hourlyBuckets[hour] || [];
+    return bucket.length ? +(bucket.reduce((total, value) => total + value, 0) / bucket.length).toFixed(1) : 0;
+  });
+
+  const aqiBins = [0, 50, 100, 150, 200, 300, 500];
+  const histogramLabels = aqiBins.slice(0, -1).map((start, idx) => `${start}-${aqiBins[idx + 1]}`);
+  const histogramCounts = aqiBins.slice(0, -1).map((start, idx) => {
+    const end = aqiBins[idx + 1];
+    return aqiList.filter((value) => value >= start && value < end).length;
+  });
+
+  const aqiBarChart = {
+    labels: data.hours,
+    datasets: [
+      {
+        label: 'AQI Hourly',
+        data: aqiList,
+        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+      }
+    ]
+  };
+
+  const movingAverageChart = {
+    labels: data.hours,
+    datasets: [
+      {
+        label: 'AQI 3-Point Moving Average',
+        data: movingAverage,
+        borderColor: '#9b59b6',
+        backgroundColor: 'rgba(155, 89, 182, 0.15)',
+        fill: true,
+      }
+    ]
+  };
+
+  const monthlyAverageChart = {
+    labels: monthlyLabels,
+    datasets: [
+      {
+        label: 'Month Average AQI',
+        data: monthlyAverageData,
+        backgroundColor: 'rgba(46, 204, 113, 0.7)',
+        borderColor: '#2ecc71'
+      }
+    ]
+  };
+
+  const hourlyPatternChart = {
+    labels: hourLabels,
+    datasets: [
+      {
+        label: 'Average AQI by Hour',
+        data: hourlyAverageData,
+        backgroundColor: 'rgba(241, 196, 15, 0.7)',
+        borderColor: '#f1c40f'
+      }
+    ]
+  };
+
+  const aqiHistogramChart = {
+    labels: histogramLabels,
+    datasets: [
+      {
+        label: 'AQI Frequency',
+        data: histogramCounts,
+        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+      }
+    ]
+  };
+
+  const tempVsAqiChart = {
+    datasets: [
+      {
+        label: 'Temperature vs AQI',
+        data: temperatureList.map((x, idx) => ({ x, y: aqiList[idx] || 0 })),
+        backgroundColor: 'rgba(231, 76, 60, 0.85)',
+      }
+    ]
+  };
+
+  const humidityVsAqiChart = {
+    datasets: [
+      {
+        label: 'Humidity vs AQI',
+        data: humidityList.map((x, idx) => ({ x, y: aqiList[idx] || 0 })),
+        backgroundColor: 'rgba(52, 152, 219, 0.85)',
+      }
+    ]
   };
 
   const chartOptions = {
@@ -197,24 +321,26 @@ const DataAnalysis = () => {
     plugins: {
       legend: {
         labels: {
-          color: '#fff',
+          color: textColor,
           font: { size: 12, weight: 'bold' }
         }
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: isDark ? 'rgba(10, 10, 10, 0.9)' : 'rgba(255, 255, 255, 0.95)',
+        titleColor: textColor,
+        bodyColor: textColor,
         titleFont: { size: 12 },
         bodyFont: { size: 11 }
       }
     },
     scales: {
       x: {
-        ticks: { color: '#aaa', font: { size: 10 } },
-        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+        ticks: { color: textColor, font: { size: 10 } },
+        grid: { color: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(30, 41, 59, 0.12)' }
       },
       y: {
-        ticks: { color: '#aaa', font: { size: 10 } },
-        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+        ticks: { color: textColor, font: { size: 10 } },
+        grid: { color: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(30, 41, 59, 0.12)' }
       }
     }
   };
@@ -225,7 +351,7 @@ const DataAnalysis = () => {
     plugins: {
       legend: {
         labels: {
-          color: '#fff',
+          color: textColor,
           font: { size: 12, weight: 'bold' }
         }
       }
@@ -240,12 +366,13 @@ const DataAnalysis = () => {
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed',
         minHeight: '100vh',
-        padding: '20px'
+        padding: '20px',
+        backgroundColor: isDark ? '#05070f' : '#eef2f7'
       }}
     >
       <div style={{
-        backgroundColor: 'rgba(0, 0, 0, 0.75)',
-        backdropFilter: 'blur(10px)',
+        backgroundColor: panelBackground,
+        backdropFilter: 'blur(4px)',
         minHeight: '100vh',
         padding: '40px 20px',
         borderRadius: '0'
@@ -260,13 +387,13 @@ const DataAnalysis = () => {
             borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
             paddingBottom: '20px'
           }}>
-            <h1 style={{ color: '#fff', margin: 0, fontSize: '36px', fontWeight: 'bold' }}>📊 Data Analysis & Insights</h1>
+            <h1 style={{ color: textColor, margin: 0, fontSize: '36px', fontWeight: 'bold' }}>📊 Data Analysis & Insights</h1>
             <button
               onClick={() => navigate('/dashboard')}
               style={{
                 padding: '10px 20px',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                color: '#fff',
+                backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(31, 41, 55, 0.12)',
+                color: textColor,
                 border: '1px solid rgba(255, 255, 255, 0.2)',
                 borderRadius: '8px',
                 cursor: 'pointer',
@@ -318,64 +445,101 @@ const DataAnalysis = () => {
           {/* Charts Grid */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
             gap: '20px',
             marginBottom: '40px'
           }}>
-            {/* AQI Trend */}
-            <div style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '12px',
-              padding: '20px',
-              backdropFilter: 'blur(5px)'
-            }}>
-              <h3 style={{ color: '#fff', marginTop: 0, marginBottom: '20px' }}>📈 AQI Trend Over Time</h3>
-              <div style={{ height: '300px' }}>
-                <Line data={aqiTrendChart} options={chartOptions} />
+            {[
+              {
+                title: '📈 AQI Trend Over Time',
+                type: 'line',
+                data: aqiTrendChart,
+                fullWidth: false
+              },
+              {
+                title: '📊 Hourly AQI Distribution',
+                type: 'bar',
+                data: aqiBarChart,
+                fullWidth: false
+              },
+              {
+                title: '🥧 AQI Category Distribution',
+                type: 'pie',
+                data: categoryChart,
+                fullWidth: false
+              },
+              {
+                title: '🔄 Pollutant & Weather Comparison',
+                type: 'line',
+                data: pollutantComparisonChart,
+                fullWidth: true
+              },
+              {
+                title: '📉 Moving Average Trend',
+                type: 'line',
+                data: movingAverageChart,
+                fullWidth: false
+              },
+              {
+                title: '⏱️ Hourly AQI Pattern',
+                type: 'bar',
+                data: hourlyPatternChart,
+                fullWidth: false
+              },
+              {
+                title: '🗓️ Monthly Average AQI',
+                type: 'bar',
+                data: monthlyAverageChart,
+                fullWidth: false
+              },
+              {
+                title: '🌡️ Temperature vs AQI',
+                type: 'scatter',
+                data: tempVsAqiChart,
+                fullWidth: false
+              },
+              {
+                title: '💧 Humidity vs AQI',
+                type: 'scatter',
+                data: humidityVsAqiChart,
+                fullWidth: false
+              },
+              {
+                title: '📈 AQI Histogram',
+                type: 'bar',
+                data: aqiHistogramChart,
+                fullWidth: false
+              }
+            ].map((chart, idx) => (
+              <div key={chart.title} style={{
+                backgroundColor: cardBackground,
+                border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.12)'}`,
+                borderRadius: '14px',
+                padding: '22px',
+                backdropFilter: 'blur(3px)',
+                gridColumn: chart.fullWidth ? '1 / -1' : 'auto'
+              }}>
+                <h3 style={{ color: textColor, marginTop: 0, marginBottom: '18px' }}>{chart.title}</h3>
+                <div style={{ height: '320px' }}>
+                  {chart.type === 'line' && <Line data={chart.data} options={chartOptions} />}
+                  {chart.type === 'bar' && <Bar data={chart.data} options={chartOptions} />}
+                  {chart.type === 'pie' && <Pie data={chart.data} options={pieChartOptions} />}
+                  {chart.type === 'scatter' && <Scatter data={chart.data} options={chartOptions} />}
+                </div>
               </div>
-            </div>
-
-            {/* Category Distribution */}
-            <div style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '12px',
-              padding: '20px',
-              backdropFilter: 'blur(5px)'
-            }}>
-              <h3 style={{ color: '#fff', marginTop: 0, marginBottom: '20px' }}>🥧 AQI Category Distribution</h3>
-              <div style={{ height: '300px' }}>
-                <Pie data={categoryChart} options={pieChartOptions} />
-              </div>
-            </div>
-
-            {/* Pollutant Comparison */}
-            <div style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '12px',
-              padding: '20px',
-              backdropFilter: 'blur(5px)',
-              gridColumn: '1 / -1'
-            }}>
-              <h3 style={{ color: '#fff', marginTop: 0, marginBottom: '20px' }}>🔄 Pollutant & Weather Comparison</h3>
-              <div style={{ height: '300px' }}>
-                <Line data={pollutantComparisonChart} options={chartOptions} />
-              </div>
-            </div>
+            ))}
           </div>
 
           {/* Correlation Analysis */}
           <div style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
+            backgroundColor: cardBackground,
+            border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(15, 23, 42, 0.12)'}`,
             borderRadius: '12px',
             padding: '30px',
             marginBottom: '40px'
           }}>
-            <h2 style={{ color: '#fff', marginTop: 0, marginBottom: '25px', fontSize: '24px' }}>🔗 Correlation Analysis</h2>
-            <p style={{ color: '#aaa', marginBottom: '20px' }}>Correlation coefficient between pollutants and weather factors (Range: -1 to 1)</p>
+            <h2 style={{ color: textColor, marginTop: 0, marginBottom: '25px', fontSize: '24px' }}>🔗 Correlation Analysis</h2>
+            <p style={{ color: subTextColor, marginBottom: '20px' }}>Correlation coefficient between pollutants and weather factors (Range: -1 to 1)</p>
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',

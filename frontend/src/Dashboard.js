@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from './AuthContext';
 import './Dashboard.css';
@@ -71,7 +71,7 @@ const getRainfallEstimate = (precipitation, humidity, cloudCover = 50) => {
 const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading, error }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const { logout } = useContext(AuthContext);
+  const { logout, preferences } = useContext(AuthContext);
   const navigate = useNavigate();
   
   const handleLogout = () => {
@@ -87,6 +87,9 @@ const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading,
   const aqiInfo = getAQILevel(airQuality?.pm2_5);
   const uvInfo = getUVIndexLevel(weather?.uv_index);
   const rainfallInfo = getRainfallEstimate(weather?.precipitation, weather?.relative_humidity_2m);
+  const displayLocation = preferences?.privacyMode ? 'Location Hidden' : `${cityData?.name}, ${cityData?.country}`;
+  const unitText = preferences?.units === 'µg/m3' ? 'µg/m³' : 'AQI';
+  const alertsStatus = preferences?.locationAlerts ? 'Location alerts enabled' : 'Location alerts muted';
 
   return (
     <div
@@ -126,8 +129,9 @@ const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading,
         {/* Current Location */}
         <div className="location-info">
           <p className="location-name">
-            📍 {cityData?.name}, {cityData?.country}
+            📍 {displayLocation}
           </p>
+          <p style={{ color: 'rgba(241, 245, 249, 0.75)', fontSize: '14px', marginTop: '6px' }}>{unitText} • {alertsStatus}</p>
         </div>
 
         {/* Hamburger Menu Button */}

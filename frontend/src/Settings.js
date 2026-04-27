@@ -1,11 +1,16 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from './AuthContext';
 import backgroundImage from './assets/backgroung2.jpg';
 import './Settings.css';
 
 const Settings = () => {
-  const { user, updateUser, theme, updateTheme, logout } = useContext(AuthContext);
+  const { user, updateUser, theme, updateTheme, logout, preferences, updatePreferences } = useContext(AuthContext);
+  const isDark = theme !== 'light';
+  const panelBackground = isDark ? 'rgba(0, 0, 0, 0.78)' : 'rgba(255, 255, 255, 0.95)';
+  const titleColor = isDark ? '#fff' : '#111';
+  const bodyTextColor = isDark ? '#ccc' : '#444';
+
   const navigate = useNavigate();
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({
@@ -13,17 +18,34 @@ const Settings = () => {
     email: user?.email || '',
     phone: user?.phone || ''
   });
-  const [notifications, setNotifications] = useState(true);
-  const [dataSharing, setDataSharing] = useState(false);
+  const [preferencesState, setPreferencesState] = useState({
+    notifications: true,
+    dataSharing: false,
+    autoRefresh: false,
+    privacyMode: false,
+    locationAlerts: true,
+    units: 'AQI'
+  });
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  useEffect(() => {
+    if (preferences) {
+      setPreferencesState(prev => ({ ...prev, ...preferences }));
+    }
+  }, [preferences]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handlePreferenceToggle = (key, value) => {
+    setPreferencesState(prev => ({ ...prev, [key]: value }));
+  };
+
   const handleSaveProfile = () => {
     updateUser(formData);
+    updatePreferences(preferencesState);
     setEditMode(false);
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 3000);
@@ -46,12 +68,13 @@ const Settings = () => {
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed',
         minHeight: '100vh',
-        padding: '20px'
+        padding: '20px',
+        backgroundColor: isDark ? '#070b16' : '#eff3fb'
       }}
     >
       <div style={{
-        backgroundColor: 'rgba(0, 0, 0, 0.75)',
-        backdropFilter: 'blur(10px)',
+        backgroundColor: panelBackground,
+        backdropFilter: 'blur(4px)',
         minHeight: '100vh',
         padding: '40px 20px'
       }}>
@@ -65,7 +88,7 @@ const Settings = () => {
             borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
             paddingBottom: '20px'
           }}>
-            <h1 style={{ color: '#fff', margin: 0, fontSize: '36px', fontWeight: 'bold' }}>⚙️ Settings</h1>
+            <h1 style={{ color: titleColor, margin: 0, fontSize: '36px', fontWeight: 'bold' }}>⚙️ Settings</h1>
             <button
               onClick={() => navigate('/dashboard')}
               style={{
@@ -112,7 +135,7 @@ const Settings = () => {
             padding: '30px',
             marginBottom: '30px'
           }}>
-            <h2 style={{ color: '#fff', marginTop: 0, marginBottom: '25px', fontSize: '24px' }}>👤 Profile Information</h2>
+            <h2 style={{ color: titleColor, marginTop: 0, marginBottom: '25px', fontSize: '24px' }}>👤 Profile Information</h2>
 
             <div style={{
               display: 'grid',
@@ -295,7 +318,7 @@ const Settings = () => {
 
             {/* Theme Selection */}
             <div style={{ marginBottom: '25px' }}>
-              <h3 style={{ color: '#ccc', marginTop: 0, fontSize: '16px', marginBottom: '15px' }}>Theme</h3>
+              <h3 style={{ color: bodyTextColor, marginTop: 0, fontSize: '16px', marginBottom: '15px' }}>Theme</h3>
               <div style={{ display: 'flex', gap: '15px' }}>
                 {['dark', 'light'].map(themeOption => (
                   <button
@@ -330,101 +353,111 @@ const Settings = () => {
               </div>
             </div>
 
-            {/* Notification Toggle */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              paddingBottom: '20px',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-              marginBottom: '20px'
-            }}>
-              <div>
-                <h3 style={{ color: '#ccc', margin: 0, fontSize: '16px' }}>🔔 Notifications</h3>
-                <p style={{ color: '#999', margin: '5px 0 0 0', fontSize: '14px' }}>Receive alerts about air quality changes</p>
-              </div>
-              <label style={{
-                position: 'relative',
-                display: 'inline-block',
-                width: '50px',
-                height: '24px'
-              }}>
-                <input
-                  type="checkbox"
-                  checked={notifications}
-                  onChange={(e) => setNotifications(e.target.checked)}
-                  style={{ opacity: 0, width: 0, height: 0 }}
-                />
-                <span style={{
-                  position: 'absolute',
-                  cursor: 'pointer',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  backgroundColor: notifications ? '#27ae60' : '#555',
-                  transition: '0.3s',
-                  borderRadius: '24px'
-                }}></span>
-                <span style={{
-                  position: 'absolute',
-                  content: '""',
-                  height: '18px',
-                  width: '18px',
-                  left: notifications ? '26px' : '3px',
-                  bottom: '3px',
-                  backgroundColor: '#fff',
-                  transition: '0.3s',
-                  borderRadius: '50%'
-                }}></span>
-              </label>
+            <div style={{ display: 'grid', gap: '20px', marginBottom: '25px' }}>
+              {[
+                {
+                  key: 'notifications',
+                  label: '🔔 Notifications',
+                  description: 'Receive alerts about air quality changes',
+                },
+                {
+                  key: 'dataSharing',
+                  label: '📊 Data Sharing',
+                  description: 'Help improve our service with usage analytics',
+                },
+                {
+                  key: 'autoRefresh',
+                  label: '⏱️ Auto Refresh',
+                  description: 'Keep the dashboard updated automatically',
+                },
+                {
+                  key: 'privacyMode',
+                  label: '🕶️ Privacy Mode',
+                  description: 'Hide sensitive location information on the dashboard',
+                },
+                {
+                  key: 'locationAlerts',
+                  label: '📍 Location Alerts',
+                  description: 'Receive local pollution alerts for your current area',
+                }
+              ].map((option) => (
+                <div key={option.key} style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '20px',
+                  borderRadius: '12px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)'
+                }}>
+                  <div>
+                    <h3 style={{ color: '#ccc', margin: 0, fontSize: '16px' }}>{option.label}</h3>
+                    <p style={{ color: '#999', margin: '5px 0 0 0', fontSize: '14px' }}>{option.description}</p>
+                  </div>
+                  <label style={{ position: 'relative', display: 'inline-block', width: '50px', height: '24px' }}>
+                    <input
+                      type="checkbox"
+                      checked={preferencesState[option.key]}
+                      onChange={(e) => handlePreferenceToggle(option.key, e.target.checked)}
+                      style={{ opacity: 0, width: 0, height: 0 }}
+                    />
+                    <span style={{
+                      position: 'absolute',
+                      cursor: 'pointer',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: preferencesState[option.key] ? '#27ae60' : '#555',
+                      transition: '0.3s',
+                      borderRadius: '24px'
+                    }}></span>
+                    <span style={{
+                      position: 'absolute',
+                      height: '18px',
+                      width: '18px',
+                      left: preferencesState[option.key] ? '26px' : '3px',
+                      bottom: '3px',
+                      backgroundColor: '#fff',
+                      transition: '0.3s',
+                      borderRadius: '50%'
+                    }}></span>
+                  </label>
+                </div>
+              ))}
             </div>
 
-            {/* Data Sharing Toggle */}
+            <div style={{ marginBottom: '25px' }}>
+              <h3 style={{ color: '#ccc', marginTop: 0, fontSize: '16px', marginBottom: '15px' }}>Units</h3>
+              <select
+                value={preferencesState.units}
+                onChange={(e) => handlePreferenceToggle('units', e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  color: '#fff',
+                  fontSize: '14px'
+                }}
+              >
+                <option value="AQI">AQI</option>
+                <option value="µg/m3">µg/m³</option>
+              </select>
+            </div>
+
             <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
+              backgroundColor: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '12px',
+              padding: '20px'
             }}>
-              <div>
-                <h3 style={{ color: '#ccc', margin: 0, fontSize: '16px' }}>📊 Data Sharing</h3>
-                <p style={{ color: '#999', margin: '5px 0 0 0', fontSize: '14px' }}>Help improve our service with usage analytics</p>
-              </div>
-              <label style={{
-                position: 'relative',
-                display: 'inline-block',
-                width: '50px',
-                height: '24px'
-              }}>
-                <input
-                  type="checkbox"
-                  checked={dataSharing}
-                  onChange={(e) => setDataSharing(e.target.checked)}
-                  style={{ opacity: 0, width: 0, height: 0 }}
-                />
-                <span style={{
-                  position: 'absolute',
-                  cursor: 'pointer',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  backgroundColor: dataSharing ? '#27ae60' : '#555',
-                  transition: '0.3s',
-                  borderRadius: '24px'
-                }}></span>
-                <span style={{
-                  position: 'absolute',
-                  content: '""',
-                  height: '18px',
-                  width: '18px',
-                  left: dataSharing ? '26px' : '3px',
-                  bottom: '3px',
-                  backgroundColor: '#fff',
-                  transition: '0.3s',
-                  borderRadius: '50%'
-                }}></span>
-              </label>
+              <h3 style={{ color: '#fff', marginTop: 0, marginBottom: '10px', fontSize: '18px' }}>Active Settings</h3>
+              <p style={{ color: '#bbb', margin: '0 0 8px 0' }}>Theme: <strong style={{ color: '#fff' }}>{theme === 'dark' ? 'Dark' : 'Light'}</strong></p>
+              <p style={{ color: '#bbb', margin: '0 0 8px 0' }}>Auto Refresh: <strong style={{ color: '#fff' }}>{preferencesState.autoRefresh ? 'Enabled' : 'Disabled'}</strong></p>
+              <p style={{ color: '#bbb', margin: '0 0 8px 0' }}>Privacy Mode: <strong style={{ color: '#fff' }}>{preferencesState.privacyMode ? 'On' : 'Off'}</strong></p>
+              <p style={{ color: '#bbb', margin: 0 }}>Unit System: <strong style={{ color: '#fff' }}>{preferencesState.units}</strong></p>
             </div>
           </div>
 
