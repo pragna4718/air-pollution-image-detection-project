@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { jsPDF } from "jspdf";
 import backgroundImage from './assets/backgroung2.jpg';
 
 function ImageDetection() {
@@ -57,6 +58,36 @@ function ImageDetection() {
     setPreview(null);
     setResult(null);
     setError(null);
+  };
+
+  const handleDownloadPDF = () => {
+    if (!result) return;
+
+    const pdf = new jsPDF();
+    const title = "Air Pollution Image Detection Result";
+    const introY = 20;
+
+    pdf.setFontSize(18);
+    pdf.text(title, 15, introY);
+
+    pdf.setFontSize(12);
+    const confidenceText = result.confidence != null ? `${(result.confidence * 100).toFixed(1)}%` : "0%";
+    pdf.text(`Prediction: ${result.prediction || "N/A"}`, 15, introY + 15);
+    pdf.text(`Confidence: ${confidenceText}`, 15, introY + 25);
+    pdf.text(`Cause: ${result.cause || "N/A"}`, 15, introY + 35);
+    pdf.text(`Detected Particles: ${result.particles?.length > 0 ? result.particles.join(", ") : "None detected"}`, 15, introY + 45);
+    pdf.text(`Suggestion: ${result.suggestion || "N/A"}`, 15, introY + 55);
+
+    if (preview) {
+      const imageY = introY + 70;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const maxImageWidth = pageWidth - 30;
+      const maxImageHeight = 120;
+
+      pdf.addImage(preview, "JPEG", 15, imageY, maxImageWidth, maxImageHeight);
+    }
+
+    pdf.save("image-detection-result.pdf");
   };
 
   const cardStyle = {
@@ -134,6 +165,12 @@ function ImageDetection() {
     ...buttonStyle,
     backgroundColor: "#95a5a6",
     marginRight: "0",
+  };
+
+  const downloadButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: "#2ecc71",
+    marginRight: "10px",
   };
 
   const errorStyle = {
@@ -248,18 +285,33 @@ function ImageDetection() {
           </button>
 
           {result && (
-            <button
-              onClick={handleReset}
-              style={resetButtonStyle}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = "#7f8c8d";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = "#95a5a6";
-              }}
-            >
-              Upload Another
-            </button>
+            <>
+              <button
+                onClick={handleDownloadPDF}
+                style={downloadButtonStyle}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = "#27ae60";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = "#2ecc71";
+                }}
+              >
+                Download Result
+              </button>
+
+              <button
+                onClick={handleReset}
+                style={resetButtonStyle}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = "#7f8c8d";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = "#95a5a6";
+                }}
+              >
+                Upload Another
+              </button>
+            </>
           )}
         </div>
       </div>

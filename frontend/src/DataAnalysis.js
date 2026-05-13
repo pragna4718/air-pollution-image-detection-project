@@ -23,12 +23,12 @@ const DataAnalysis = () => {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [selectedMetric, setSelectedMetric] = useState('aqi');
   const { theme } = useContext(AuthContext);
   const isDark = theme !== 'light';
 
   useEffect(() => {
     fetchAnalysisData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchAnalysisData = async () => {
@@ -63,15 +63,6 @@ const DataAnalysis = () => {
       hours,
       months
     });
-  };
-
-  const getAQILevel = (value) => {
-    if (value <= 50) return { level: 'Good', color: '#00b894', emoji: '😊' };
-    if (value <= 100) return { level: 'Moderate', color: '#ffeaa7', emoji: '😐' };
-    if (value <= 150) return { level: 'Unhealthy for Sensitive', color: '#fdcb6e', emoji: '😟' };
-    if (value <= 200) return { level: 'Unhealthy', color: '#e17055', emoji: '😷' };
-    if (value <= 300) return { level: 'Very Unhealthy', color: '#d63031', emoji: '😢' };
-    return { level: 'Hazardous', color: '#6c5ce7', emoji: '💀' };
   };
 
   if (loading) {

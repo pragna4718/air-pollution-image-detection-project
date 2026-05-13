@@ -3,7 +3,7 @@ import './App.css';
 import Dashboard from './Dashboard';
 import { AuthContext } from './AuthContext';
 
-const fallbackCities = ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai'];
+const fallbackCities = ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai', 'Kolkata', 'Pune'];
 
 function App() {
   const [data, setData] = useState(null);
@@ -21,20 +21,33 @@ function App() {
       if (!response.ok) {
         if (retryIndex < fallbackCities.length) {
           const nextCity = fallbackCities[retryIndex];
-          console.log(`Trying fallback city: ${nextCity}`);
+          console.log(`City '${cityName}' not found, trying fallback: ${nextCity}`);
           return fetchDashboardData(nextCity, retryIndex + 1);
         }
-        throw new Error(`City not found: ${cityName}`);
+        throw new Error(`Unable to fetch data for: ${cityName}`);
       }
       
       const result = await response.json();
+      if (!result || !result.weather || !result.airQuality) {
+        throw new Error('Invalid data received from server');
+      }
       setData(result);
-      setCity(cityName);
+      setCity(result.city?.name || cityName);
       setInputCity('');
+      setError(null);
       setLoading(false);
     } catch (err) {
-      setError(err.message);
-      console.error('Error fetching data:', err);
+      const errorMessage = err.message || 'Failed to fetch dashboard data';
+      console.error('Error fetching data:', errorMessage);
+      
+      if (retryIndex >= fallbackCities.length) {
+        setError(errorMessage);
+        setData(null);
+      } else {
+        const nextCity = fallbackCities[retryIndex];
+        console.log(`Retrying with fallback city: ${nextCity}`);
+        return fetchDashboardData(nextCity, retryIndex + 1);
+      }
       setLoading(false);
     }
   }, []);
@@ -63,7 +76,7 @@ function App() {
   };
 
   return (
-    data ? (
+    data && !error ? (
       <Dashboard 
         data={data} 
         city={city}
@@ -81,12 +94,17 @@ function App() {
     ) : error ? (
       <div className="error">
         <div className="error-icon">⚠️</div>
-        <p>Error: {error}</p>
+        <p>{error}</p>
         <button onClick={() => fetchDashboardData('Mumbai')}>
-          Retry with Default City
+          Retry with Mumbai
         </button>
       </div>
-    ) : null
+    ) : (
+      <div className="loading">
+        <div className="spinner"></div>
+        <p>Initializing...</p>
+      </div>
+    )
   );
 }
 

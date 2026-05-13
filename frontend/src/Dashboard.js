@@ -79,15 +79,82 @@ const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading,
     navigate('/login');
   };
 
+  // Show error if present
+  if (error || !data) {
+    return (
+      <div
+        className="dashboard"
+        style={{
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'scroll',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+        }}
+      >
+        <div className="overlay"></div>
+        <div style={{
+          position: 'relative',
+          zIndex: 1,
+          backgroundColor: 'rgba(15, 23, 42, 0.9)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(71, 85, 105, 0.3)',
+          borderRadius: '20px',
+          padding: '40px',
+          textAlign: 'center',
+          maxWidth: '500px',
+          boxShadow: '0 0 40px rgba(0, 0, 0, 0.3)',
+        }}>
+          <div style={{ fontSize: '60px', marginBottom: '20px' }}>⚠️</div>
+          <h2 style={{ color: '#f1f5f9', marginBottom: '10px', fontSize: '24px' }}>Unable to Load Dashboard</h2>
+          <p style={{ color: 'rgba(241, 245, 249, 0.8)', marginBottom: '20px', fontSize: '16px' }}>
+            {error || 'Please try again or select a different city.'}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '12px 24px',
+              borderRadius: '25px',
+              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.8) 0%, rgba(139, 92, 246, 0.8) 100%)',
+              color: '#f1f5f9',
+              border: 'none',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+            }}
+            onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+            onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const weather = data?.weather?.current;
   const dailyWeather = data?.weather?.daily;
   const airQuality = data?.airQuality?.current;
   const cityData = data?.city;
 
+  const forecastDates = dailyWeather?.time?.slice(0, 3) || [];
+  const forecastMax = dailyWeather?.temperature_2m_max || [];
+  const forecastMin = dailyWeather?.temperature_2m_min || [];
+  const forecastCodes = dailyWeather?.weather_code || [];
+
+  const safeNumber = (value, decimals = 0) => {
+    if (typeof value !== 'number' || Number.isNaN(value)) return '--';
+    return decimals === 0 ? Math.round(value) : value.toFixed(decimals);
+  };
+
   const aqiInfo = getAQILevel(airQuality?.pm2_5);
   const uvInfo = getUVIndexLevel(weather?.uv_index);
   const rainfallInfo = getRainfallEstimate(weather?.precipitation, weather?.relative_humidity_2m);
-  const displayLocation = preferences?.privacyMode ? 'Location Hidden' : `${cityData?.name}, ${cityData?.country}`;
+  const displayLocation = preferences?.privacyMode ? 'Location Hidden' : `${cityData?.name || 'Unknown city'}, ${cityData?.country || ''}`;
   const unitText = preferences?.units === 'µg/m3' ? 'µg/m³' : 'AQI';
   const alertsStatus = preferences?.locationAlerts ? 'Location alerts enabled' : 'Location alerts muted';
 
@@ -295,7 +362,7 @@ const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading,
                 </div>
                 <div className="rainfall-detail">
                   <span className="detail-label">Precipitation</span>
-                  <span className="detail-value">{weather?.precipitation?.toFixed(1) || 0} mm</span>
+                  <span className="detail-value">{typeof weather?.precipitation === 'number' ? weather.precipitation.toFixed(1) : '0.0'} mm</span>
                 </div>
               </div>
             </div>
@@ -305,7 +372,7 @@ const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading,
           <div className="forecast-card">
             <h3>📅 3-Day Forecast</h3>
             <div className="forecast-grid">
-              {dailyWeather?.time?.slice(0, 3).map((date, index) => (
+              {forecastDates.map((date, index) => (
                 <div key={index} className="forecast-item">
                   <div className="date">
                     {new Date(date).toLocaleDateString('en-US', {
@@ -315,11 +382,11 @@ const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading,
                     })}
                   </div>
                   <div className="emoji">
-                    {getWeatherEmoji(dailyWeather?.weather_code[index])}
+                    {getWeatherEmoji(forecastCodes[index])}
                   </div>
                   <div className="temps">
-                    <span className="max">{Math.round(dailyWeather?.temperature_2m_max[index])}°</span>
-                    <span className="min">{Math.round(dailyWeather?.temperature_2m_min[index])}°</span>
+                    <span className="max">{safeNumber(forecastMax[index])}°</span>
+                    <span className="min">{safeNumber(forecastMin[index])}°</span>
                   </div>
                 </div>
               ))}
@@ -336,7 +403,7 @@ const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading,
             </div>
             <div className="aqi-display" style={{ borderColor: aqiInfo.color }}>
               <div className="aqi-value" style={{ color: aqiInfo.color }}>
-                {Math.round(airQuality?.pm2_5)}
+                {safeNumber(airQuality?.pm2_5)}
               </div>
               <div className="aqi-unit">PM2.5 μg/m³</div>
             </div>
@@ -353,17 +420,17 @@ const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading,
               <div className="gas-item">
                 <div className="gas-name">PM10</div>
                 <div className="gas-value">
-                  {airQuality?.pm10?.toFixed(1)} μg/m³
+                  {typeof airQuality?.pm10 === 'number' ? airQuality.pm10.toFixed(1) : 'N/A'} μg/m³
                 </div>
                 <div className="gas-bar">
                   <div
                     className="gas-bar-fill"
                     style={{
                       width: `${Math.min(
-                        (airQuality?.pm10 / 150) * 100,
+                        ((airQuality?.pm10 ?? 0) / 150) * 100,
                         100
                       )}%`,
-                      backgroundColor: airQuality?.pm10 > 50 ? '#FF6B6B' : '#FFD700',
+                      backgroundColor: (airQuality?.pm10 ?? 0) > 50 ? '#FF6B6B' : '#FFD700',
                     }}
                   ></div>
                 </div>
@@ -372,17 +439,17 @@ const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading,
               <div className="gas-item">
                 <div className="gas-name">O₃ (Ozone)</div>
                 <div className="gas-value">
-                  {airQuality?.ozone?.toFixed(1) || 'N/A'} ppb
+                  {typeof airQuality?.ozone === 'number' ? airQuality.ozone.toFixed(1) : 'N/A'} ppb
                 </div>
                 <div className="gas-bar">
                   <div
                     className="gas-bar-fill"
                     style={{
                       width: `${Math.min(
-                        ((airQuality?.ozone || 0) / 100) * 100,
+                        ((airQuality?.ozone ?? 0) / 100) * 100,
                         100
                       )}%`,
-                      backgroundColor: (airQuality?.ozone || 0) > 50 ? '#FF6B6B' : '#FFD700',
+                      backgroundColor: (airQuality?.ozone ?? 0) > 50 ? '#FF6B6B' : '#FFD700',
                     }}
                   ></div>
                 </div>
@@ -391,17 +458,17 @@ const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading,
               <div className="gas-item">
                 <div className="gas-name">NO₂ (Nitrogen Dioxide)</div>
                 <div className="gas-value">
-                  {airQuality?.nitrogen_dioxide?.toFixed(1) || 'N/A'} ppb
+                  {typeof airQuality?.nitrogen_dioxide === 'number' ? airQuality.nitrogen_dioxide.toFixed(1) : 'N/A'} ppb
                 </div>
                 <div className="gas-bar">
                   <div
                     className="gas-bar-fill"
                     style={{
                       width: `${Math.min(
-                        ((airQuality?.nitrogen_dioxide || 0) / 100) * 100,
+                        ((airQuality?.nitrogen_dioxide ?? 0) / 100) * 100,
                         100
                       )}%`,
-                      backgroundColor: (airQuality?.nitrogen_dioxide || 0) > 50 ? '#FF6B6B' : '#FFD700',
+                      backgroundColor: (airQuality?.nitrogen_dioxide ?? 0) > 50 ? '#FF6B6B' : '#FFD700',
                     }}
                   ></div>
                 </div>
@@ -410,17 +477,17 @@ const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading,
               <div className="gas-item">
                 <div className="gas-name">SO₂ (Sulfur Dioxide)</div>
                 <div className="gas-value">
-                  {airQuality?.sulphur_dioxide?.toFixed(1) || 'N/A'} ppb
+                  {typeof airQuality?.sulphur_dioxide === 'number' ? airQuality.sulphur_dioxide.toFixed(1) : 'N/A'} ppb
                 </div>
                 <div className="gas-bar">
                   <div
                     className="gas-bar-fill"
                     style={{
                       width: `${Math.min(
-                        ((airQuality?.sulphur_dioxide || 0) / 80) * 100,
+                        ((airQuality?.sulphur_dioxide ?? 0) / 80) * 100,
                         100
                       )}%`,
-                      backgroundColor: (airQuality?.sulphur_dioxide || 0) > 30 ? '#FF6B6B' : '#FFD700',
+                      backgroundColor: (airQuality?.sulphur_dioxide ?? 0) > 30 ? '#FF6B6B' : '#FFD700',
                     }}
                   ></div>
                 </div>
@@ -429,17 +496,17 @@ const Dashboard = ({ data, city, onCityChange, inputCity, setInputCity, loading,
               <div className="gas-item">
                 <div className="gas-name">CO (Carbon Monoxide)</div>
                 <div className="gas-value">
-                  {airQuality?.carbon_monoxide?.toFixed(2) || 'N/A'} μmol/mol
+                  {typeof airQuality?.carbon_monoxide === 'number' ? airQuality.carbon_monoxide.toFixed(2) : 'N/A'} μmol/mol
                 </div>
                 <div className="gas-bar">
                   <div
                     className="gas-bar-fill"
                     style={{
                       width: `${Math.min(
-                        ((airQuality?.carbon_monoxide || 0) / 1) * 100,
+                        ((airQuality?.carbon_monoxide ?? 0) / 1) * 100,
                         100
                       )}%`,
-                      backgroundColor: (airQuality?.carbon_monoxide || 0) > 0.5 ? '#FF6B6B' : '#FFD700',
+                      backgroundColor: (airQuality?.carbon_monoxide ?? 0) > 0.5 ? '#FF6B6B' : '#FFD700',
                     }}
                   ></div>
                 </div>

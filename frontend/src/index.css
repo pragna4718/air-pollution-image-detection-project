@@ -12,11 +12,13 @@ html, body {
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', Tahoma, Geneva, Verdana, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: var(--app-bg, #000);
   color: var(--text-main, #f8fafc);
+  font-weight: 500;
+  letter-spacing: 0.3px;
 }
 
 body.theme-dark {
