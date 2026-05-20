@@ -11,6 +11,23 @@ const API_KEY = process.env.API_KEY;
 app.use(cors());
 app.use(express.json());
 
+// Known coordinates for common cities if external geocoding fails
+const CITY_COORDINATES = {
+  mumbai: { lat: 19.0760, lon: 72.8777, name: 'Mumbai', country: 'India' },
+  delhi: { lat: 28.7041, lon: 77.1025, name: 'Delhi', country: 'India' },
+  "new delhi": { lat: 28.7041, lon: 77.1025, name: 'New Delhi', country: 'India' },
+  bangalore: { lat: 12.9716, lon: 77.5946, name: 'Bangalore', country: 'India' },
+  bengaluru: { lat: 12.9716, lon: 77.5946, name: 'Bengaluru', country: 'India' },
+  hyderabad: { lat: 17.3850, lon: 78.4867, name: 'Hyderabad', country: 'India' },
+  chennai: { lat: 13.0827, lon: 80.2707, name: 'Chennai', country: 'India' },
+  kolkata: { lat: 22.5726, lon: 88.3639, name: 'Kolkata', country: 'India' },
+  pune: { lat: 18.5204, lon: 73.8567, name: 'Pune', country: 'India' },
+};
+
+function normalizeCityName(cityName) {
+  return String(cityName || '').trim().toLowerCase();
+}
+
 // Geocode city name to coordinates
 async function geocodeCity(cityName) {
   try {
@@ -26,9 +43,19 @@ async function geocodeCity(cityName) {
         country: result.country,
       };
     }
+
+    const fallback = CITY_COORDINATES[normalizeCityName(cityName)];
+    if (fallback) {
+      return fallback;
+    }
     return null;
   } catch (error) {
     console.error("Geocoding error:", error);
+
+    const fallback = CITY_COORDINATES[normalizeCityName(cityName)];
+    if (fallback) {
+      return fallback;
+    }
     return null;
   }
 }

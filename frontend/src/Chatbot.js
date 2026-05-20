@@ -1,126 +1,186 @@
-import React, { useState, useRef, useEffect } from 'react';
-import './Chatbot.css';
+import React, { useState } from "react";
 
-const Chatbot = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [input, setInput] = useState('');
-  const [messages, setMessages] = useState([
-    { sender: 'bot', text: 'Hello! I am your AI Air Quality Assistant. How can I help you today?' }
-  ]);
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef(null);
+function Chatbot() {
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [open, setOpen] = useState(false);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const toggleChat = () => setIsOpen(!isOpen);
-
-  const handleSend = async (e) => {
-    e.preventDefault();
+  const sendMessage = async () => {
     if (!input.trim()) return;
 
-    const userMessage = input.trim();
-    setMessages(prev => [...prev, { sender: 'user', text: userMessage }]);
-    setInput('');
-    setIsLoading(true);
+    const userMessage = {
+      sender: "user",
+      text: input
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
 
     try {
-      const endpoints = ['http://localhost:5000/chat', '/api/chat'];
-      let response = null;
-      let data = null;
+      const res = await fetch("http://localhost:3001/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: input
+        })
+      });
 
-      for (const url of endpoints) {
-        try {
-          response = await fetch(url, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ message: userMessage }),
-          });
-
-          if (!response.ok) {
-            continue;
-          }
-
-          data = await response.json();
-          if (data?.reply) {
-            break;
-          }
-        } catch (endpointError) {
-          console.warn(`Chat endpoint failed: ${url}`, endpointError);
-        }
+      if (!res.ok) {
+        throw new Error(`Chat API error: ${res.status}`);
       }
 
-      if (!data?.reply) {
-        throw new Error('All chat endpoints failed');
-      }
+      const data = await res.json();
 
-      setMessages(prev => [...prev, { sender: 'bot', text: data.reply }]);
-    } catch (error) {
-      console.error('Error sending message:', error);
-      setMessages(prev => [...prev, { sender: 'bot', text: 'Sorry, I am having trouble connecting to the server. Please make sure the backend or ML API is running.' }]);
-    } finally {
-      setIsLoading(false);
+      // Add bot reply
+      const botMessage = {
+        sender: "bot",
+        text: data.reply
+      };
+
+      setMessages((prev) => [...prev, botMessage]);
+
+    } catch (err) {
+      console.error(err);
     }
+
+    setInput("");
   };
 
   return (
-    <div className="chatbot-container">
-      {/* Chat Window */}
-      {isOpen && (
-        <div className="chat-window">
-          <div className="chat-header">
-            <h3>🤖 AQI Assistant</h3>
-            <button className="close-btn" onClick={toggleChat}>✕</button>
+    <>
+      {open && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: "90px",
+            right: "20px",
+            width: "340px",
+            maxHeight: "480px",
+            background: "white",
+            borderRadius: "16px",
+            boxShadow: "0px 20px 60px rgba(0,0,0,0.2)",
+            padding: "12px",
+            zIndex: 1000,
+            display: "flex",
+            flexDirection: "column"
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+            <h3 style={{ margin: 0, fontSize: "1rem" }}>🤖 AI Chatbot</h3>
+            <button
+              onClick={() => setOpen(false)}
+              style={{
+                border: "none",
+                background: "transparent",
+                cursor: "pointer",
+                fontSize: "1.25rem",
+                lineHeight: 1
+              }}
+            >
+              ×
+            </button>
           </div>
-          <div className="chat-body">
-            {messages.map((msg, index) => (
-              <div key={index} className={`message-wrapper ${msg.sender}`}>
-                <div className="message">
-                  {msg.text}
-                </div>
+
+          <div
+            style={{
+              flex: 1,
+              minHeight: "220px",
+              overflowY: "auto",
+              border: "1px solid #e0e0e0",
+              padding: "10px",
+              borderRadius: "12px",
+              marginBottom: "10px",
+              background: "#fafafa"
+            }}
+          >
+            {messages.length === 0 ? (
+              <div style={{ color: "#666", fontSize: "0.95rem" }}>
+                Start the conversation by asking a question.
               </div>
-            ))}
-            {isLoading && (
-              <div className="message-wrapper bot">
-                <div className="message typing-indicator">
-                  <span>.</span><span>.</span><span>.</span>
+            ) : (
+              messages.map((msg, index) => (
+                <div
+                  key={index}
+                  style={{
+                    display: "flex",
+                    justifyContent: msg.sender === "user" ? "flex-end" : "flex-start",
+                    marginBottom: "10px"
+                  }}
+                >
+                  <div
+                    style={{
+                      background: msg.sender === "user" ? "#007bff" : "#e5e5ea",
+                      color: msg.sender === "user" ? "white" : "black",
+                      padding: "10px 14px",
+                      borderRadius: "18px",
+                      maxWidth: "80%",
+                      wordBreak: "break-word"
+                    }}
+                  >
+                    {msg.text}
+                  </div>
                 </div>
-              </div>
+              ))
             )}
-            <div ref={messagesEndRef} />
           </div>
-          <form className="chat-input-area" onSubmit={handleSend}>
+
+          <div style={{ display: "flex", gap: "8px" }}>
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your question..."
-              disabled={isLoading}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") sendMessage();
+              }}
+              placeholder="Ask something..."
+              style={{
+                flex: 1,
+                padding: "10px 12px",
+                borderRadius: "12px",
+                border: "1px solid #d1d5db"
+              }}
             />
-            <button type="submit" disabled={isLoading || !input.trim()}>
+            <button
+              onClick={sendMessage}
+              style={{
+                padding: "10px 16px",
+                borderRadius: "12px",
+                border: "none",
+                background: "#2563eb",
+                color: "white",
+                cursor: "pointer"
+              }}
+            >
               Send
             </button>
-          </form>
+          </div>
         </div>
       )}
 
-      {/* Floating Toggle Button */}
-      <button 
-        className={`chat-toggle-btn ${isOpen ? 'open' : ''}`} 
-        onClick={toggleChat}
-        title="Chat with AI Assistant"
+      <button
+        onClick={() => setOpen((prev) => !prev)}
+        style={{
+          position: "fixed",
+          bottom: "20px",
+          right: "20px",
+          width: "58px",
+          height: "58px",
+          borderRadius: "50%",
+          background: "#2563eb",
+          border: "none",
+          color: "white",
+          fontSize: "1.5rem",
+          cursor: "pointer",
+          boxShadow: "0px 10px 30px rgba(37,99,235,0.3)",
+          zIndex: 1000
+        }}
+        aria-label={open ? "Close chat" : "Open chat"}
       >
-        {isOpen ? '✕' : '💬'}
+        💬
       </button>
-    </div>
+    </>
   );
-};
+}
 
 export default Chatbot;

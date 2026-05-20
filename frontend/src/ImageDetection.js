@@ -39,11 +39,12 @@ function ImageDetection() {
         body: formData,
       });
 
+      const data = await res.json().catch(() => null);
       if (!res.ok) {
-        throw new Error("Failed to process image. Please try again.");
+        const message = data?.error || "Failed to process image. Please try again.";
+        throw new Error(message);
       }
 
-      const data = await res.json();
       setResult(data);
     } catch (err) {
       setError(err.message || "An error occurred while processing your image.");

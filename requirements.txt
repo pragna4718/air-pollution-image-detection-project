@@ -6,3 +6,8 @@ matplotlib==3.8.1
 seaborn==0.13.2
 tensorflow==2.15.0
 Pillow==10.1.0
+google-cloud-vision
+python-dotenv
+requests
+# Note: google-generative-ai is optional and may not be available via pip in all environments.
+# The server uses a REST fallback to call Gemini when needed, so this dependency is optional.
