@@ -11,13 +11,14 @@ import {
   PointElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 } from 'chart.js';
 import backgroundImage from './assets/backgroung2.jpg';
 import { AuthContext } from './AuthContext';
 import './DataAnalysis.css';
 
-ChartJS.register(LineElement, BarElement, ArcElement, CategoryScale, LinearScale, PointElement, Title, Tooltip, Legend);
+ChartJS.register(LineElement, BarElement, ArcElement, CategoryScale, LinearScale, PointElement, Title, Tooltip, Legend, Filler);
 
 const DataAnalysis = () => {
   const navigate = useNavigate();
